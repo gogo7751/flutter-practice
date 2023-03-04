@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
         ),
-        home: MyHomePage(),
+        home: LoadingPage(),
       ),
     );
   }
@@ -55,6 +55,54 @@ class MyAppState extends ChangeNotifier {
   void removeFavorite(WordPair pair) {
     favorites.remove(pair);
     notifyListeners();
+  }
+}
+
+class LoadingPage extends StatefulWidget {
+  const LoadingPage({Key? key}) : super(key: key);
+
+  @override
+  State<LoadingPage> createState() => _LoadingPageState();
+}
+
+class _LoadingPageState extends State<LoadingPage>
+    with TickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    _controller =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 600));
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Theme.of(context).colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Lottie.network(
+          'https://assets8.lottiefiles.com/packages/lf20_x62chJ.json',
+          controller: _controller,
+          onLoaded: (composition) {
+            // Configure the AnimationController with the duration of the
+            // Lottie file and start the animation.
+            _controller
+              ..duration = composition.duration
+              ..forward().then((value) => Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (context) => MyHomePage())));
+          },
+        ),
+      ),
+    );
   }
 }
 
