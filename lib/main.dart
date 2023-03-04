@@ -1,6 +1,7 @@
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lottie/lottie.dart';
 
 void main() {
   runApp(MyApp());
@@ -172,15 +173,10 @@ class FavoritesList extends StatefulWidget {
 }
 
 class _FavoritesListState extends State<FavoritesList> {
-  /// Needed so that [MyAppState] can tell [AnimatedList] below to animate
-  /// new items.
   final _key = GlobalKey();
 
-  /// Used to "fade out" the history items at the top, to suggest continuation.
   static const Gradient _maskingGradient = LinearGradient(
-    // This gradient goes from fully transparent to fully opaque black...
     colors: [Colors.transparent, Colors.black],
-    // ... from the top (transparent) to half (0.5) of the way to the bottom.
     stops: [0.0, 0.5],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
@@ -193,8 +189,6 @@ class _FavoritesListState extends State<FavoritesList> {
 
     return ShaderMask(
       shaderCallback: (bounds) => _maskingGradient.createShader(bounds),
-      // This blend mode takes the opacity of the shader (i.e. our gradient)
-      // and applies it to the destination (i.e. our animated list).
       blendMode: BlendMode.dstIn,
       child: AnimatedList(
         key: _key,
@@ -229,6 +223,7 @@ class _FavoritesListState extends State<FavoritesList> {
 class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     var appState = context.watch<MyAppState>();
 
     if (appState.favorites.isEmpty) {
@@ -237,18 +232,38 @@ class FavoritesPage extends StatelessWidget {
       );
     }
 
-    return ListView(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(30),
           child: Text('You have '
               '${appState.favorites.length} favorites:'),
         ),
-        for (var pair in appState.favorites)
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text(pair.asLowerCase),
+        Expanded(
+          child: GridView(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 400,
+              childAspectRatio: 400 / 80,
+            ),
+            children: [
+              for (var pair in appState.favorites)
+                ListTile(
+                  leading: IconButton(
+                    icon: Icon(Icons.delete_outline, semanticLabel: 'Delete'),
+                    color: theme.colorScheme.primary,
+                    onPressed: () {
+                      appState.removeFavorite(pair);
+                    },
+                  ),
+                  title: Text(
+                    pair.asLowerCase,
+                    semanticsLabel: pair.asPascalCase,
+                  ),
+                ),
+            ],
           ),
+        ),
       ],
     );
   }
